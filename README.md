@@ -2,20 +2,30 @@
 
 Analyze Kubernetes monitoring log archives and generate interactive HTML dashboards with charts, issue detection, and prioritized recommendations.
 
-Zero npm dependencies. Pure Node.js.
+**Zero npm dependencies. Pure Node.js.**
+
+## Installation
+
+```bash
+# Clone the repo
+git clone https://github.com/rohit-sourcefuse/k8s-log-analyzer.git
+cd k8s-log-analyzer
+
+# Install globally (use from anywhere)
+npm install -g .
+
+# Or link for development
+npm link
+```
 
 ## Quick Start
 
 ```bash
-# Run directly
+# Analyze a log archive
+k8s-log-analyzer /path/to/monitor-logs_YYYYMMDD_HHMMSS/
+
+# Or run directly without installing
 node analyze.js /path/to/monitor-logs_YYYYMMDD_HHMMSS/
-
-# Or install globally
-cd log-analyzer
-npm link
-
-# Then use from anywhere
-k8s-log-analyzer /path/to/logs/
 ```
 
 ## Features
@@ -27,7 +37,9 @@ k8s-log-analyzer /path/to/logs/
 - Interactive Chart.js graphs (8 chart types) with dark theme
 - Issue detection with severity ranking and root cause analysis
 - Prioritized recommendations with effort/impact ratings
-- Date/time filtering (CLI flags + in-report filters)
+- Quick time range presets (15m, 30m, 1h, 6h, 24h, 2d) in local timezone
+- Date/time filtering (CLI flags + in-report interactive filters)
+- Severity and category filters
 - Self-contained HTML output (single file, Chart.js from CDN)
 
 ## Usage
@@ -92,7 +104,12 @@ A single self-contained HTML file with:
 - DB connection trends (line chart)
 - Issue cards with severity badges
 - Prioritized recommendations
-- Date/time and severity filters
+- Quick time range filters (15m, 30m, 1h, 6h, 24h, 2d)
+- Date/time, severity, and category filters
+
+## Requirements
+
+- Node.js >= 16
 
 ## License
 

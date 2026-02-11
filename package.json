@@ -1,0 +1,32 @@
+{
+  "name": "k8s-log-analyzer",
+  "version": "1.0.0",
+  "description": "Analyze Kubernetes monitoring log archives and generate interactive HTML dashboards with charts, issue detection, and recommendations.",
+  "main": "analyze.js",
+  "bin": {
+    "k8s-log-analyzer": "./analyze.js"
+  },
+  "scripts": {
+    "start": "node analyze.js",
+    "test": "node analyze.js ../"
+  },
+  "keywords": [
+    "kubernetes",
+    "k8s",
+    "log-analyzer",
+    "monitoring",
+    "dashboard",
+    "performance",
+    "devops"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "analyze.js",
+    "lib/**/*",
+    "README.md"
+  ]
+}

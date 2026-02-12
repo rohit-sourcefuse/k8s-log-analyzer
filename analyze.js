@@ -8,6 +8,7 @@ const { scanLogArchive } = require('./lib/utils/file-scanner');
 const { parseAllErrorLogs } = require('./lib/parsers/error-log-parser');
 const { parseAllMetrics } = require('./lib/parsers/metrics-parser');
 const { parseDbDebug } = require('./lib/parsers/db-debug-parser');
+const { parsePodLogs } = require('./lib/parsers/pod-log-parser');
 const { classifyErrors } = require('./lib/analyzers/error-classifier');
 const { analyzeMetrics } = require('./lib/analyzers/metrics-analyzer');
 const { analyzeDbConnections } = require('./lib/analyzers/db-analyzer');
@@ -106,6 +107,7 @@ async function main() {
   log(`  Found ${manifest.errorLogs.length} error logs, ${manifest.metricsFiles.length} metrics files`);
   if (manifest.dbDebugLog) log(`  Found DB debug log`);
   if (manifest.slowQueryLogs.length > 0) log(`  Found ${manifest.slowQueryLogs.length} slow query logs`);
+  if (manifest.podLogs.length > 0) log(`  Found ${manifest.podLogs.length} pod logs`);
   console.log('');
 
   // Step 2: Parse error logs
@@ -143,7 +145,19 @@ async function main() {
     console.log('');
   }
 
-  // Step 5: Analyze
+  // Step 5: Parse pod logs (kubectl container logs)
+  let podLogData = { pods: [], stats: { podCount: 0, totalLines: 0, totalErrors: 0, totalRequests: 0 } };
+  if (manifest.podLogs.length > 0) {
+    log('Parsing pod logs...');
+    podLogData = await parsePodLogs(manifest.podLogs, {
+      onProgress: (podName, lines) => process.stdout.write(`\r  Parsed ${podName} (${lines.toLocaleString()} lines)`)
+    });
+    process.stdout.write('\n');
+    log(`  ${podLogData.stats.podCount} pods, ${podLogData.stats.totalLines.toLocaleString()} lines, ${podLogData.stats.totalErrors} errors, ${podLogData.stats.totalRequests.toLocaleString()} API requests`);
+    console.log('');
+  }
+
+  // Step 6: Analyze
   log('Classifying errors...');
   const errorAnalysis = classifyErrors(errorData.events);
   log(`  ${errorAnalysis.categories.length} error categories detected`);
@@ -164,13 +178,14 @@ async function main() {
   log(`  ${recommendations.length} recommendations`);
   console.log('');
 
-  // Step 6: Generate report
+  // Step 7: Generate report
   log('Generating HTML report...');
   await generateReport({
     manifestData: manifest.manifestData,
     errorAnalysis,
     metricsAnalysis,
     dbAnalysis,
+    podLogData,
     issues,
     recommendations,
     stats: errorData.stats
@@ -183,6 +198,7 @@ async function main() {
   console.log(`  Lines analyzed:   ${errorData.stats.totalLines.toLocaleString()}`);
   console.log(`  Events parsed:    ${errorData.events.length.toLocaleString()}`);
   console.log(`  Error categories: ${errorAnalysis.categories.length}`);
+  if (podLogData.stats.podCount > 0) console.log(`  Pod logs:         ${podLogData.stats.podCount} pods (${podLogData.stats.totalRequests.toLocaleString()} requests)`);
   console.log(`  Issues found:     ${issues.length}`);
   const critical = issues.filter(i => i.severity === 'critical').length;
   const high = issues.filter(i => i.severity === 'high').length;
